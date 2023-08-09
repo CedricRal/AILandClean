@@ -12,7 +12,7 @@ from sklearn.ensemble import RandomForestClassifier
 from sklearn.neighbors import KNeighborsClassifier
 
 #importer le fichier csv
-myData = pd.read_excel("D:\Dataset\Dataodc.xlsx")
+myData = pd.read_excel("D:\ODC\Projet\Dataset\Dataodc.xlsx")
 myData = myData.drop(['N°', 'NOM AMO', 'Region', 'Commune', 'Fokontany',
        'Localité (village)', 'Nombre de latrine existante avant intervention',
        'Milieu (rural/urbain)', 'Date d\'auto-déclartion ODF par la communauté',
@@ -66,9 +66,9 @@ rf_grid = GridSearchCV(estimator=rf_model, param_grid=rf_param_grid, cv=5)
 knn_grid = GridSearchCV(estimator=knn_model, param_grid=knn_param_grid, cv=5)
 
 # Adapter les grilles de recherche aux données
-svc_grid.fit(x-train, y_train)
-rf_grid.fit(x-train, y_train)
-knn_grid.fit(x-train, y_train)
+svc_grid.fit(x_train, y_train)
+rf_grid.fit(x_train, y_train)
+knn_grid.fit(x_train, y_train)
 
 
 
