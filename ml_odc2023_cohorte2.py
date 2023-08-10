@@ -12,7 +12,7 @@ from sklearn.ensemble import RandomForestClassifier
 from sklearn.neighbors import KNeighborsClassifier
 
 #importer le fichier csv
-myData = pd.read_excel("D:\Dataset\Dataodc.xlsx")
+myData = pd.read_excel("D:\Dataset\Dataodc.xlsx", parse_dates=True)
 myData = myData.drop(['N°', 'NOM AMO', 'Region', 'Commune', 'Fokontany',
        'Localité (village)', 'Nombre de latrine existante avant intervention',
        'Milieu (rural/urbain)', 'Date d\'auto-déclartion ODF par la communauté',
@@ -30,7 +30,7 @@ myData = myData.drop(['N°', 'NOM AMO', 'Region', 'Commune', 'Fokontany',
        'Contact du Champion', 'Nom de TA responsable', 'N° tel de TA ',
        'Appréciation par rapport à la cohérence des données rapportées',
        'Classification subjective du village ODF (JAUNErouge vert)',
-       'Observations'], axis=1)
+       'Observations', 'date de déclenchement', 'Date de premier rapportage en tant qu\'ODF'], axis=1)
 
 
 #Data pre-processing
@@ -44,16 +44,32 @@ myData['District'] = encoder.fit_transform(myData['District'])
 print(myData.info())
 print(myData.iloc[2:3, :3].to_string())
 
-x = myData.iloc[:,:12].copy()
-y = myData.iloc[:,12].copy()
+x = myData.iloc[:,:10].copy()
+y = myData.iloc[:,10].copy()
 print(x.shape)
 print(y.shape)
 x_train, x_test, y_train, y_test = train_test_split(x, y, test_size=0.25, random_state=1) # Split data for test and training
 
 # Paramètres à rechercher pour chaque modèle
-svc_param_grid = {'C': [0.1, 1, 10], 'kernel': ['linear', 'rbf']}
-rf_param_grid = {'n_estimators': [50, 100, 200], 'max_depth': [None, 10, 20]}
-knn_param_grid = {'n_neighbors': [3, 5, 7], 'weights': ['uniform', 'distance']}
+svc_param_grid = {
+    'C': [0.001, 0.01, 0.1, 1, 10, 100, 1000],
+    'gamma': [0.0001, 0.001, 0.01, 0.1, 1, 10, 100],
+    'kernel': ['linear', 'poly', 'rbf', 'sigmoid']
+}
+rf_param_grid = {
+    'n_estimators': [50, 100, 150, 200, 250, 300],
+    'max_depth': [None, 10, 20, 30],
+    'min_samples_split': [2, 5, 10],
+    'min_samples_leaf': [1, 2, 4],
+    'max_features': ['auto', 'sqrt', 'log2'],
+    'bootstrap': [True, False]
+}
+knn_param_grid = {
+    'n_neighbors': np.arange(4,20),
+    'weights': ['uniform', 'distance'],
+    'algorithm': ['auto', 'ball_tree', 'kd_tree', 'brute'],
+    'p': [1, 2]
+}
 
 # Initialisation des modèles
 svc_model = SVC()
@@ -66,14 +82,17 @@ rf_grid = GridSearchCV(estimator=rf_model, param_grid=rf_param_grid, cv=5)
 knn_grid = GridSearchCV(estimator=knn_model, param_grid=knn_param_grid, cv=5)
 
 # Adapter les grilles de recherche aux données
-svc_grid.fit(x-train, y_train)
-rf_grid.fit(x-train, y_train)
-knn_grid.fit(x-train, y_train)
+svc_grid.fit(x_train, y_train)
+rf_grid.fit(x_train, y_train)
+knn_grid.fit(x_train, y_train)
 
-
-
-
-
+# Afficher les meilleurs paramètres et scores pour chaque modèle
+print("SVC - Meilleurs paramètres:", svc_grid.best_params_)
+print("SVC - Meilleur score:", svc_grid.best_score_)
+print("\nRandom Forest - Meilleurs paramètres:", rf_grid.best_params_)
+print("Random Forest - Meilleur score:", rf_grid.best_score_)
+print("\nKNeighbors - Meilleurs paramètres:", knn_grid.best_params_)
+print("KNeighbors - Meilleur score:", knn_grid.best_score_)
 
 
 
